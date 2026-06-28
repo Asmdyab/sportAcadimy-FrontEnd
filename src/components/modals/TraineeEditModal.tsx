@@ -1,0 +1,195 @@
+import { useState, useEffect } from "react";
+import { BaseModal } from "./BaseModal";
+import { FormInput } from "./FormInput";
+import { FormSelect, SelectOption } from "./FormSelect";
+import { FormMultiSelect, MultiSelectOption } from "./FormMultiSelect";
+import { ApiError } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { getBranches } from "@/services/branch.services";
+import { getSports } from "@/services/sport.services";
+import { updateTrainee } from "@/services/trainee.service";
+import { UpdateTraineeCommand } from "@/types/commands/updateTraineeCommand";
+import { useFormDirty } from "@/hooks/useFormDirty";
+
+interface TraineeEditData {
+  id: number;
+  firstName: string;
+  lastName: string;
+  parentNumber?: string;
+  guardianName?: string;
+  branchName?: string;
+  sports?: string[];
+}
+
+interface TraineeEditModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+  trainee: TraineeEditData | null;
+}
+
+export function TraineeEditModal({
+  open,
+  onOpenChange,
+  onSuccess,
+  trainee,
+}: TraineeEditModalProps) {
+  const { toast } = useToast();
+  const { isDirty, markDirty, resetDirty } = useFormDirty();
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [branches, setBranches] = useState<SelectOption[]>([]);
+  const [sportsOptions, setSportsOptions] = useState<MultiSelectOption[]>([]);
+
+  const [form, setForm] = useState({
+    parentNumber: "",
+    guardianName: "",
+    branchId: "",
+    sportIds: [] as string[],
+  });
+
+  useEffect(() => {
+    if (!open || !trainee) return;
+    resetDirty();
+    setErrors([]);
+    setForm({
+      parentNumber: trainee.parentNumber ?? "",
+      guardianName: trainee.guardianName ?? "",
+      branchId: "",
+      sportIds: [],
+    });
+    Promise.all([getBranches(), getSports()])
+      .then(([brRes, spRes]) => {
+        if (brRes.isSuccess) {
+          const branchesData = brRes.data.map((b) => ({
+            value: String(b.id),
+            label: b.name,
+          }));
+          setBranches(branchesData);
+          // Set current branch
+          const currentBranch = branchesData.find(
+            (b) => b.label === trainee.branchName,
+          );
+          if (currentBranch) {
+            setForm((f) => ({ ...f, branchId: currentBranch.value }));
+          }
+        }
+        if (spRes.isSuccess) {
+          const sportsData = spRes.data.map((s) => ({
+            value: String(s.id),
+            label: s.name,
+          }));
+          setSportsOptions(sportsData);
+          // Set current sports
+          const currentSportIds = sportsData
+            .filter((s) => trainee.sports?.includes(s.label))
+            .map((s) => s.value);
+          setForm((f) => ({ ...f, sportIds: currentSportIds }));
+        }
+      })
+      .catch(() => { });
+  }, [open, trainee]);
+
+  const set = (key: keyof typeof form) => (val: string) => {
+    markDirty();
+    setForm((f) => ({ ...f, [key]: val }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trainee) return;
+    setErrors([]);
+    setLoading(true);
+    try {
+      const command: UpdateTraineeCommand = {
+        id: trainee.id,
+        guardianName: form.guardianName || null,
+        parentNumber: form.parentNumber || null,
+        branchId: parseInt(form.branchId),
+        sportIds:
+          form.sportIds.length > 0
+            ? form.sportIds.map((id) => parseInt(id))
+            : null,
+      };
+
+      const result = await updateTrainee(command);
+
+      if (!result.isSuccess) {
+        throw new ApiError(result.statusCode, {
+          message: result.message || "Failed to update trainee.",
+        });
+      }
+
+      toast({ title: "Trainee updated successfully" });
+      resetDirty();
+      onSuccess();
+      onOpenChange(false);
+    } catch (err) {
+      if (err instanceof ApiError) setErrors(err.getValidationErrors());
+      else setErrors(["Failed to update trainee."]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <BaseModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Trainee"
+      description="Update editable trainee details"
+      onSubmit={handleSubmit}
+      loading={loading}
+      errors={errors}
+      submitLabel="Save Changes"
+      isDirty={isDirty}
+    >
+      {/* Read-only display */}
+      <div className="rounded-lg bg-muted/40 border border-border px-4 py-3 space-y-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+          Read-only
+        </p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+          <span className="text-muted-foreground">Name</span>
+          <span className="font-medium">
+            {trainee?.firstName} {trainee?.lastName}
+          </span>
+        </div>
+      </div>
+
+      {/* Editable fields */}
+      <div className="grid grid-cols-2 gap-3">
+        <FormInput
+          id="parentNumber"
+          label="Parent Number"
+          value={form.parentNumber}
+          onChange={set("parentNumber")}
+        />
+        <FormInput
+          id="guardianName"
+          label="Guardian Name"
+          value={form.guardianName}
+          onChange={set("guardianName")}
+        />
+      </div>
+      {branches.length > 0 && (
+        <FormSelect
+          id="branchId"
+          label="Branch"
+          value={form.branchId}
+          onChange={set("branchId")}
+          options={branches}
+          placeholder="Keep current branch"
+        />
+      )}
+      <FormMultiSelect
+        id="sportIds"
+        label="Sports"
+        values={form.sportIds}
+        onChange={(v) => setForm((f) => ({ ...f, sportIds: v }))}
+        options={sportsOptions}
+        placeholder="Keep current sports"
+      />
+    </BaseModal>
+  );
+}

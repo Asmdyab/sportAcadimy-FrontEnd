@@ -1,0 +1,135 @@
+import { useState, useEffect } from "react";
+import { useFormDirty } from "@/hooks/useFormDirty";
+import { BaseModal } from "./BaseModal";
+import { FormSelect, SelectOption } from "./FormSelect";
+import { ApiError } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { getSports } from "@/services/sport.services";
+import { updateCoach } from "@/services/coaches.service";
+import { CoachEditDataDto } from "@/types/CoachEditDataDto";
+
+interface CoachEditModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+  coach: CoachEditDataDto | null;
+}
+
+export function CoachEditModal({
+  open,
+  onOpenChange,
+  onSuccess,
+  coach,
+}: CoachEditModalProps) {
+  const { toast } = useToast();
+  const { isDirty, markDirty, resetDirty } = useFormDirty();
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [sports, setSports] = useState<SelectOption[]>([]);
+
+  const [form, setForm] = useState({ sportId: "", skillLevel: "" });
+
+  useEffect(() => {
+    if (!open || !coach) return;
+    resetDirty();
+    setErrors([]);
+    setForm({ sportId: "", skillLevel: coach.skillLevel ?? "" });
+    getSports()
+      .then((res) => {
+        if (res.isSuccess) {
+          const opts = res.data.map((s) => ({
+            value: String(s.id),
+            label: s.name,
+          }));
+          setSports(opts);
+          // Resolve current sport by name → ID
+          const match = opts.find((o) => o.label === coach.sportName);
+          if (match) setForm((f) => ({ ...f, sportId: match.value }));
+        }
+      })
+      .catch(() => {});
+  }, [open, coach]);
+
+  const set = (key: keyof typeof form) => (val: string) => {
+    markDirty();
+    setForm((f) => ({ ...f, [key]: val }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!coach) return;
+    setErrors([]);
+    setLoading(true);
+    try {
+      const result = await updateCoach(coach.id, {
+        sportId: form.sportId ? Number(form.sportId) : undefined,
+        skillLevel: form.skillLevel || undefined,
+      });
+
+      if (!result.isSuccess) {
+        throw new ApiError(result.statusCode, {
+          message: result.message || "Failed to update coach.",
+        });
+      }
+
+      toast({ title: "Coach updated successfully" });
+      resetDirty();
+      onSuccess();
+      onOpenChange(false);
+    } catch (err) {
+      if (err instanceof ApiError) setErrors(err.getValidationErrors());
+      else setErrors(["Failed to update coach."]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <BaseModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Coach"
+      description="Update editable coach details"
+      onSubmit={handleSubmit}
+      loading={loading}
+      errors={errors}
+      submitLabel="Save Changes"
+      isDirty={isDirty}
+    >
+      {/* Read-only display */}
+      <div className="rounded-lg bg-muted/40 border border-border px-4 py-3 space-y-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+          Read-only
+        </p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+          <span className="text-muted-foreground">Name</span>
+          <span className="font-medium">
+            {coach?.firstName} {coach?.lastName}
+          </span>
+          <span className="text-muted-foreground">Current Sport</span>
+          <span className="font-medium">{coach?.sportName ?? "—"}</span>
+        </div>
+      </div>
+
+      <FormSelect
+        id="sportId"
+        label="Change Sport"
+        value={form.sportId}
+        onChange={set("sportId")}
+        options={sports}
+        placeholder="Keep current sport"
+      />
+      <FormSelect
+        id="skillLevel"
+        label="Skill Level"
+        value={form.skillLevel}
+        onChange={set("skillLevel")}
+        options={[
+          { value: "Beginner", label: "Beginner" },
+          { value: "Intermediate", label: "Intermediate" },
+          { value: "Advanced", label: "Advanced" },
+        ]}
+      />
+    </BaseModal>
+  );
+}

@@ -1,0 +1,166 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppLayout } from "./components/layout/AppLayout";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ScrollToTop } from "./components/ScrollToTop";
+import Dashboard from "./pages/Dashboard";
+import Trainees from "./pages/Trainees";
+import Coaches from "./pages/Coaches";
+import EmployeeProfile from "./pages/EmployeeProfile";
+import CoachProfile from "./pages/CoachProfile";
+import TraineeProfile from "./pages/TraineeProfile";
+import BranchProfile from "./pages/BranchProfile";
+import SportProfile from "./pages/SportProfile";
+import TraineeGroupProfile from "./pages/TraineeGroupProfile";
+import EnrollmentProfile from "./pages/EnrollmentProfile";
+import MyProfile from "./pages/MyProfile";
+import TraineeGroups from "./pages/TraineeGroups";
+
+import Employees from "./pages/Employees";
+import Branches from "./pages/Branches";
+import Sports from "./pages/Sports";
+import Enrollments from "./pages/Enrollments";
+import Attendance from "./pages/Attendance";
+import Profiles from "./pages/Profiles";
+import UsersRoles from "./pages/UsersRoles";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Sessions from "./pages/Sessions";
+import NotificationsPage from "./pages/NotificationsPage";
+import NotFound from "./pages/NotFound";
+import VideoAnalysis from "./pages/VideoAnalysis";
+import Index from "./pages/Index";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Data is considered fresh for 60 s — prevents redundant refetches on tab focus
+      staleTime: 60_000,
+      // Keep unused cache for 5 minutes before garbage-collecting
+      gcTime: 5 * 60_000,
+      // Retry failed requests twice with exponential back-off
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 30_000),
+      // Refetch on window focus so data stays fresh without manual refresh
+      refetchOnWindowFocus: true,
+    },
+    mutations: {
+      // No automatic retry for writes — side-effects must be idempotent to retry
+      retry: 0,
+    },
+  },
+});
+
+const App = () => (
+  <ThemeProvider
+    attribute="class"
+    defaultTheme="system"
+    enableSystem
+    disableTransitionOnChange
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <ScrollToTop />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+
+              {/* Protected routes */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <ErrorBoundary>
+                        <Routes>
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/my-profile" element={<MyProfile />} />
+                          <Route path="/employees" element={<Employees />} />
+                          <Route
+                            path="/employees/:id"
+                            element={<EmployeeProfile />}
+                          />
+                          <Route path="/coaches" element={<Coaches />} />
+                          <Route
+                            path="/coaches/:id"
+                            element={<CoachProfile />}
+                          />
+                          <Route path="/trainees" element={<Trainees />} />
+                          <Route
+                            path="/trainees/:id"
+                            element={<TraineeProfile />}
+                          />
+                          <Route
+                            path="/branches/:id"
+                            element={<BranchProfile />}
+                          />
+                          <Route
+                            path="/sports/:id"
+                            element={<SportProfile />}
+                          />
+                          <Route
+                            path="/trainee-groups/:id"
+                            element={<TraineeGroupProfile />}
+                          />
+                          <Route
+                            path="/enrollments/:id"
+                            element={<EnrollmentProfile />}
+                          />
+                          <Route
+                            path="/trainee-groups"
+                            element={<TraineeGroups />}
+                          />
+
+                          <Route path="/branches" element={<Branches />} />
+                          <Route path="/sports" element={<Sports />} />
+                          <Route path="/sessions" element={<Sessions />} />
+                          <Route
+                            path="/enrollments"
+                            element={<Enrollments />}
+                          />
+                          <Route path="/attendance" element={<Attendance />} />
+                          <Route path="/profiles" element={<Profiles />} />
+                          <Route
+                            path="/users-roles"
+                            element={
+                              <ProtectedRoute>
+                                <UsersRoles />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/notifications"
+                            element={<NotificationsPage />}
+                          />
+                          <Route
+                            path="/video-analysis"
+                            element={<VideoAnalysis />}
+                          />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </ErrorBoundary>
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
+);
+
+export default App;

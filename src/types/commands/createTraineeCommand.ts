@@ -1,0 +1,24 @@
+export interface CreateTraineeCommand {
+  firstName: string;
+  lastName: string;
+  ssn: string;
+  parentNumber: string | null;
+  guardianName: string | null;
+  birthDate: string | null; // Formatted as "yyyy-MM-dd"
+  gender: string; // "male" or "female" (camelCase to match backend)
+  branchId: number;
+  sportIds: number[];
+  familyId: number;
+  nationalityCategoryId: number;
+  phoneNumber: string;
+  email: string;
+  nationality: string;
+  street?: string | null;
+  city?: string | null;
+}
+
+export enum Gender {
+  Male = 0,
+  Female = 1,
+  Other = 2,
+}

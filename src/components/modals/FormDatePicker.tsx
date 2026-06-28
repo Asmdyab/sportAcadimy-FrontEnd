@@ -1,0 +1,89 @@
+import { useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+interface FormDatePickerProps {
+  id: string;
+  label: string;
+  value: Date | undefined;
+  onChange: (date: Date | undefined) => void;
+  required?: boolean;
+  error?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  /** Earliest selectable date (inclusive). Defaults to 1950-01-01 for past-only pickers. */
+  minDate?: Date;
+  /** Latest selectable date (inclusive). Defaults to today for past-only pickers. */
+  maxDate?: Date;
+}
+
+export function FormDatePicker({
+  id,
+  label,
+  value,
+  onChange,
+  required = false,
+  error,
+  placeholder = "Pick a date",
+  disabled = false,
+  minDate,
+  maxDate,
+}: FormDatePickerProps) {
+  const [open, setOpen] = useState(false);
+  const today = new Date();
+  const resolvedMin = minDate ?? new Date(1950, 0, 1);
+  const resolvedMax = maxDate ?? today;
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
+      <Popover open={open} onOpenChange={setOpen} modal={true}>
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !value && "text-muted-foreground",
+              error && "border-destructive",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? format(value, "PPP") : <span>{placeholder}</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-auto p-0 pointer-events-auto"
+          align="start"
+        >
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={(d) => { onChange(d); setOpen(false); }}
+            captionLayout="dropdown"
+            fromYear={resolvedMin.getFullYear()}
+            toYear={resolvedMax.getFullYear()}
+            disabled={(date) => date < resolvedMin || date > resolvedMax}
+            initialFocus
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
