@@ -36,6 +36,7 @@ import Sessions from "./pages/Sessions";
 import NotificationsPage from "./pages/NotificationsPage";
 import NotFound from "./pages/NotFound";
 import VideoAnalysis from "./pages/VideoAnalysis";
+import ChatPage from "./pages/ChatPage";
 import Index from "./pages/Index";
 
 const queryClient = new QueryClient({
@@ -149,6 +150,10 @@ const App = () => (
                           <Route
                             path="/video-analysis"
                             element={<VideoAnalysis />}
+                          />
+                          <Route
+                            path="/chat"
+                            element={<ChatPage />}
                           />
                           <Route path="*" element={<NotFound />} />
                         </Routes>

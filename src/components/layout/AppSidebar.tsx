@@ -19,6 +19,7 @@ import {
   Shield,
   Bell,
   Video,
+  MessageCircle,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ import { cn } from "@/lib/utils";
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Video Analysis", url: "/video-analysis", icon: Video },
+  { title: "AI Chat", url: "/chat", icon: MessageCircle },
 ];
 
 const managementItems = [
