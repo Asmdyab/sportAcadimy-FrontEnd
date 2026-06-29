@@ -116,24 +116,20 @@ export default function ChatPage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () =>
-      sendMessageToBot({
-        conversationId: activeConversationId!,
-        message: input,
-      }),
-    onMutate: () => {
-      const userInput = input;
+    mutationFn: (payload: SendMessageToBotRequest) =>
+      sendMessageToBot(payload),
+    onMutate: (payload) => {
       const optimisticMsg: ChatMessageDto = {
         id: `optimistic-${Date.now()}`,
         role: "user",
-        content: userInput,
+        content: payload.message,
         createdAt: new Date().toISOString(),
       };
       setOptimisticMessages((prev) => [...prev, optimisticMsg]);
       setInput("");
-      return { userInput };
+      return { userInput: payload.message };
     },
-    onSuccess: (res, _variables, context) => {
+    onSuccess: (res, _payload, context) => {
       if (res.isSuccess && res.data) {
         setOptimisticMessages([
           {
@@ -189,7 +185,10 @@ export default function ChatPage() {
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed || !activeConversationId || sendMutation.isPending) return;
-    sendMutation.mutate();
+    sendMutation.mutate({
+      conversationId: activeConversationId!,
+      message: trimmed,
+    });
   }, [input, activeConversationId, sendMutation]);
 
   const handleKeyDown = useCallback(
