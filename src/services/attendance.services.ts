@@ -6,6 +6,7 @@ import {
   AttendanceRecordDto,
   MarkAttendanceCommand,
   SessionOccurrenceDto,
+  TraineeAttendanceReportDto,
 } from "@/types/AttendanceDto";
 
 // ── Session occurrences list (paginated) ──────────────────────────────────────
@@ -152,4 +153,26 @@ export const bulkMarkAttendance = async (
     method: "POST",
     body: JSON.stringify({ records: commands }),
   });
+};
+
+// ── Attendance Report (paginated) ────────────────────────────────────────────
+
+/**
+ * Returns a paginated attendance report for all enrolled trainees.
+ * Data comes from the vw_TraineeAttendanceReport database view.
+ */
+export const getAttendanceReport = async (
+  page: number,
+  pageSize: number,
+): Promise<ApiResult<PagedData<TraineeAttendanceReportDto>>> => {
+  if (isDevSession())
+    return devMock<PagedData<TraineeAttendanceReportDto>>({
+      items: [],
+      totalCount: 0,
+      page,
+      pageSize,
+    });
+  return apiFetch<ApiResult<PagedData<TraineeAttendanceReportDto>>>(
+    `/api/attendance/report?page=${page}&pageSize=${pageSize}`,
+  );
 };

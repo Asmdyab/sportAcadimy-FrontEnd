@@ -27,6 +27,7 @@ import Branches from "./pages/Branches";
 import Sports from "./pages/Sports";
 import Enrollments from "./pages/Enrollments";
 import Attendance from "./pages/Attendance";
+import AttendanceReport from "./pages/AttendanceReport";
 import Profiles from "./pages/Profiles";
 import UsersRoles from "./pages/UsersRoles";
 import Login from "./pages/Login";
@@ -131,6 +132,7 @@ const App = () => (
                             element={<Enrollments />}
                           />
                           <Route path="/attendance" element={<Attendance />} />
+                          <Route path="/attendance/report" element={<AttendanceReport />} />
                           <Route path="/profiles" element={<Profiles />} />
                           <Route
                             path="/users-roles"

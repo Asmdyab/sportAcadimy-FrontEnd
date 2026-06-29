@@ -12,6 +12,7 @@ import {
   Layers,
   UserPlus,
   ClipboardCheck,
+  ClipboardList,
   User,
   ChevronDown,
   LogOut,
@@ -59,6 +60,7 @@ const operationsItems = [
 
   { title: "Enrollments", url: "/enrollments", icon: UserPlus },
   { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
+  { title: "Attendance Report", url: "/attendance/report", icon: ClipboardList },
   { title: "Profiles", url: "/profiles", icon: User },
 ];
 

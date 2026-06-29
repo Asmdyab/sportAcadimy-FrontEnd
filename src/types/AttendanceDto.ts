@@ -69,6 +69,31 @@ export interface AttendanceByDateRecordDto {
  *
  * Sent to POST /api/attendance to record a trainee's attendance.
  */
+/**
+ * TraineeAttendanceReportDto
+ *
+ * Returned by GET /api/attendance/report (paginated).
+ */
+export interface TraineeAttendanceReportDto {
+  traineeId: number;
+  firstName: string;
+  lastName: string;
+  groupId: number;
+  groupName: string;
+  sportName: string;
+  branchName: string;
+  subscriptionStartDate: string;
+  subscriptionEndDate: string;
+  enrollmentId: number;
+  isActive: boolean;
+  totalSessions: number;
+  attendedSessions: number;
+  absentSessions: number;
+  attendanceRate: number;
+  absenceRate: number;
+  consecutiveAbsences: number;
+}
+
 export interface MarkAttendanceCommand {
   sessionOccurrenceId: number;
   traineeId: number;
