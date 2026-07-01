@@ -23,9 +23,8 @@ const branchSchema = z.object({
   phoneNumber: z
     .string()
     .trim()
-    .max(30, "Phone too long")
-    .optional()
-    .or(z.literal("")),
+    .min(1, "Phone number is required")
+    .max(30, "Phone too long"),
   email: z
     .union([z.string().trim().email("Invalid email"), z.literal("")])
     .optional(),
@@ -153,6 +152,7 @@ export function BranchFormModal({
           label="Phone Number"
           value={form?.phoneNumber}
           onChange={set("phoneNumber")}
+          required
           error={fieldErrors.phoneNumber}
         />
         <FormInput

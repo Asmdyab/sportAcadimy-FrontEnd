@@ -74,7 +74,8 @@ export default function Sports() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      await deleteSport(deleteTarget.id);
+      const result = await deleteSport(deleteTarget.id);
+      if (!result.isSuccess) throw new Error(result.message || "Failed to delete sport.");
       toast({ title: "Sport deleted successfully." });
       refresh();
     } catch {

@@ -43,17 +43,19 @@ const Branches = () => {
     page,
     setPage,
     totalPages,
+    refresh,
   } = useEntitySearch<BranchCardDto>({
     listFn: listBranches,
     searchFn: searchBranches,
     pageSize: PAGE_SIZE,
-    minLength: 2,
+    minLength: 1,
   });
 
   const handleRefresh = useCallback(() => {
     setTerm("");
     setPage(1);
-  }, [setTerm, setPage]);
+    refresh();
+  }, [setTerm, setPage, refresh]);
 
   const sortedBranches = sortItems(branches, (b, key) => {
     if (key === "name") return b?.name;

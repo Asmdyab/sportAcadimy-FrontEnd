@@ -61,7 +61,8 @@ export default function SportProfile() {
 
   const handleDelete = async () => {
     try {
-      await deleteSport(id!);
+      const result = await deleteSport(id!);
+      if (!result.isSuccess) throw new Error(result.message || "Failed to delete sport.");
       toast({ title: "Sport deleted successfully." });
       navigate("/sports");
     } catch {

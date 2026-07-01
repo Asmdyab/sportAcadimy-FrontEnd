@@ -344,7 +344,7 @@ export function TraineeFormModal({
         action: (
           <ToastAction
             altText="View Details"
-            onClick={() => navigate(`/trainees/${result.data.traineeId}`)}
+            onClick={() => navigate(`/trainees/${result.data}`)}
           >
             View Details
           </ToastAction>

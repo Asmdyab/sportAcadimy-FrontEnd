@@ -29,7 +29,7 @@ export function useEntitySearch<T>({
   searchFn,
   pageSize = 9,
   minLength = 2,
-  debounceMs = 400,
+  debounceMs = 200,
   extraParams,
 }: UseEntitySearchProps<T>) {
   const [term, setTerm] = useState("");
@@ -59,8 +59,6 @@ export function useEntitySearch<T>({
   }, [debouncedTerm, extraParamsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (debouncedTerm.length === 1) return;
-
     let active = true;
 
     const fetchData = async () => {

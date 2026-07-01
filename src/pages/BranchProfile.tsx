@@ -12,6 +12,7 @@ import {
   getBranchById,
   deleteBranch,
   deactivateBranch,
+  activateBranch,
   getBranchStats,
   BranchStatsDto,
 } from "@/services/branch.services";
@@ -28,7 +29,7 @@ interface BranchDetailDto {
   managerName?: string;
   capacity?: number;
   currentEnrollment?: number;
-  status?: string;
+  isActive?: boolean;
   sports?: string[];
   facilities?: string[];
   coX?: number;
@@ -80,6 +81,7 @@ export default function BranchProfile() {
   const [stats, setStats] = useState<BranchStatsDto | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [activating, setActivating] = useState(false);
 
   const fetchBranch = useCallback(async () => {
     if (!id) return;
@@ -137,6 +139,19 @@ export default function BranchProfile() {
       toast({ title: "Failed to deactivate branch.", variant: "destructive" });
     } finally {
       setDeactivating(false);
+    }
+  };
+
+  const handleActivate = async () => {
+    setActivating(true);
+    try {
+      await activateBranch(id!);
+      toast({ title: "Branch activated successfully." });
+      fetchBranch();
+    } catch {
+      toast({ title: "Failed to activate branch.", variant: "destructive" });
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -251,8 +266,7 @@ export default function BranchProfile() {
       ]
     : [];
 
-  const isActive =
-    !branch?.status || branch.status.toLowerCase() === "active";
+  const isActive = branch?.isActive !== false;
 
   return (
     <>
@@ -262,7 +276,7 @@ export default function BranchProfile() {
         fullName={branch?.name ?? ""}
         roleBadge="Branch"
         roleBadgeVariant="secondary"
-        statusBadge={branch?.status ?? "Active"}
+        statusBadge={branch?.isActive === false ? "Inactive" : "Active"}
         statusBadgeClass={
           isActive
             ? "bg-success/10 text-success"
@@ -276,8 +290,8 @@ export default function BranchProfile() {
         ]}
         onEdit={() => setEditOpen(true)}
         onDelete={handleDelete}
-        onToggleActive={isActive ? handleDeactivate : undefined}
-        toggleLabel={deactivating ? "Deactivating…" : "Deactivate Branch"}
+        onToggleActive={isActive ? handleDeactivate : handleActivate}
+        toggleLabel={deactivating ? "Deactivating…" : activating ? "Activating…" : isActive ? "Deactivate Branch" : "Activate Branch"}
         dropdownExtra={[
           {
             label: "View Sessions",

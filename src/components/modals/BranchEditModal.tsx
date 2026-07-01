@@ -55,7 +55,18 @@ export function BranchEditModal({
   const [errors, setErrors] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const [form, setForm] = useState<BranchEditData | null>(null);
+  const getEmptyForm = (): BranchEditData => ({
+    id: 0,
+    name: "",
+    city: "",
+    country: "",
+    phoneNumber: "",
+    email: "",
+    coX: "",
+    coY: "",
+  });
+
+  const [form, setForm] = useState<BranchEditData>(getEmptyForm);
 
   useEffect(() => {
     if (!open || !branch) return;

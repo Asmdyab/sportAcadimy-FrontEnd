@@ -61,12 +61,12 @@ export const getSports = async () => {
 
 export const getSportById = async (id: number | string) => {
   if (isDevSession()) return devMock<null>(null);
-  return apiFetch<ApiResult<unknown>>(`/api/sport/${id}`);
+  return apiFetch<ApiResult<unknown>>(`/api/sports/${id}`);
 };
 
 export const deleteSport = async (id: number | string) => {
   if (isDevSession()) return devMock<boolean>(true);
-  return apiFetch<ApiResult<boolean>>(`/api/sport/${id}`, { method: "DELETE" });
+  return apiFetch<ApiResult<boolean>>(`/api/sports/${id}`, { method: "DELETE" });
 };
 
 export const addSkillLevelToSport = async (dto: SportSkillLevelDto) => {
