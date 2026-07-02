@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  /** If set, the user must have this role or they are redirected to "/" */
+  /** Comma-separated roles. If set, the user must have at least one or be redirected to "/" */
   requiredRole?: string;
 }
 
@@ -18,8 +18,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && !hasRole(requiredRole)) {
-    return <Navigate to="/dashboard" replace />;
+  if (requiredRole) {
+    const roles = requiredRole.split(",").map((r) => r.trim());
+    if (!hasRole(...roles)) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

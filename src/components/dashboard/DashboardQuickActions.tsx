@@ -1,4 +1,5 @@
 import { UserPlus, BookOpen, ClipboardCheck, Zap, Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardQuickActionsProps {
   onAddTrainee: () => void;
@@ -15,6 +16,7 @@ const ACTIONS = [
     color: "text-success",
     bg: "bg-success/10 hover:bg-success/20",
     key: "trainee" as const,
+    roles: "Admin,Coach,Manager",
   },
   {
     label: "New Enrollment",
@@ -22,6 +24,7 @@ const ACTIONS = [
     color: "text-secondary",
     bg: "bg-secondary/10 hover:bg-secondary/20",
     key: "enrollment" as const,
+    roles: "Admin,Coach,Manager",
   },
   {
     label: "Mark Attendance",
@@ -29,6 +32,7 @@ const ACTIONS = [
     color: "text-primary",
     bg: "bg-primary/10 hover:bg-primary/20",
     key: "attendance" as const,
+    roles: "Admin,Coach,Manager",
   },
   {
     label: "Generate Sessions",
@@ -36,6 +40,7 @@ const ACTIONS = [
     color: "text-warning",
     bg: "bg-warning/10 hover:bg-warning/20",
     key: "sessions" as const,
+    roles: "Admin,Coach,Manager",
   },
   {
     label: "Add Coach",
@@ -43,6 +48,7 @@ const ACTIONS = [
     color: "text-primary",
     bg: "bg-primary/10 hover:bg-primary/20",
     key: "coach" as const,
+    roles: "Admin,Coach,Manager",
   },
 ] as const;
 
@@ -53,6 +59,7 @@ export function DashboardQuickActions({
   onGenerateSessions,
   onAddCoach,
 }: DashboardQuickActionsProps) {
+  const { hasRole } = useAuth();
   const handlers: Record<typeof ACTIONS[number]["key"], () => void> = {
     trainee: onAddTrainee,
     enrollment: onNewEnrollment,
@@ -61,9 +68,15 @@ export function DashboardQuickActions({
     coach: onAddCoach,
   };
 
+  const visibleActions = ACTIONS.filter((a) =>
+    a.roles.split(",").some((r) => hasRole(r.trim())),
+  );
+
+  if (visibleActions.length === 0) return null;
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {ACTIONS.map((action) => (
+      {visibleActions.map((action) => (
         <button
           key={action.label}
           onClick={handlers[action.key]}

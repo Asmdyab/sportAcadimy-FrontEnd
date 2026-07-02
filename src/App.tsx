@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import React, { Suspense } from "react";
+import { useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -60,6 +61,28 @@ const queryClient = new QueryClient({
   },
 });
 
+function getUserIdFromToken(): string | null {
+  try {
+    const token = sessionStorage.getItem("accessToken");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1])).sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function TraineeGuard({ children }: { children: React.ReactNode }) {
+  const { hasRole, devUser } = useAuth();
+  const isTrainee = hasRole("Trainee");
+  if (isTrainee) {
+    const traineeId = devUser?.id ?? getUserIdFromToken();
+    if (traineeId) {
+      return <Navigate to={`/trainees/${traineeId}`} replace />;
+    }
+  }
+  return <>{children}</>;
+}
+
 const App = () => (
   <ThemeProvider
     attribute="class"
@@ -91,71 +114,157 @@ const App = () => (
                           <Routes>
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/my-profile" element={<MyProfile />} />
-                            <Route path="/employees" element={<Employees />} />
+                            <Route path="/employees" element={
+                              <ProtectedRoute requiredRole="Admin,Manager">
+                                <Employees />
+                              </ProtectedRoute>
+                            } />
                             <Route
                               path="/employees/:id"
-                              element={<EmployeeProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Manager">
+                                  <EmployeeProfile />
+                                </ProtectedRoute>
+                              }
                             />
-                            <Route path="/coaches" element={<Coaches />} />
+                            <Route path="/coaches" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                <Coaches />
+                              </ProtectedRoute>
+                            } />
                             <Route
                               path="/coaches/:id"
-                              element={<CoachProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                  <CoachProfile />
+                                </ProtectedRoute>
+                              }
                             />
-                            <Route path="/trainees" element={<Trainees />} />
+                            <Route path="/trainees" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                <TraineeGuard>
+                                  <Trainees />
+                                </TraineeGuard>
+                              </ProtectedRoute>
+                            } />
                             <Route
                               path="/trainees/:id"
-                              element={<TraineeProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <TraineeProfile />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/branches/:id"
-                              element={<BranchProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <BranchProfile />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/sports/:id"
-                              element={<SportProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <SportProfile />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/trainee-groups/:id"
-                              element={<TraineeGroupProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                  <TraineeGroupProfile />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/enrollments/:id"
-                              element={<EnrollmentProfile />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <EnrollmentProfile />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/trainee-groups"
-                              element={<TraineeGroups />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                  <TraineeGroups />
+                                </ProtectedRoute>
+                              }
                             />
 
-                            <Route path="/branches" element={<Branches />} />
-                            <Route path="/sports" element={<Sports />} />
-                            <Route path="/sessions" element={<Sessions />} />
+                            <Route path="/branches" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                <Branches />
+                              </ProtectedRoute>
+                            } />
+                            <Route path="/sports" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                <Sports />
+                              </ProtectedRoute>
+                            } />
+                            <Route path="/sessions" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                <Sessions />
+                              </ProtectedRoute>
+                            } />
                             <Route
                               path="/enrollments"
-                              element={<Enrollments />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <Enrollments />
+                                </ProtectedRoute>
+                              }
                             />
-                            <Route path="/attendance" element={<Attendance />} />
-                            <Route path="/attendance/report" element={<AttendanceReport />} />
-                            <Route path="/profiles" element={<Profiles />} />
+                            <Route path="/attendance" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                <Attendance />
+                              </ProtectedRoute>
+                            } />
+                            <Route path="/attendance/report" element={
+                              <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                <AttendanceReport />
+                              </ProtectedRoute>
+                            } />
+                            <Route path="/profiles" element={
+                              <ProtectedRoute requiredRole="Admin,Manager">
+                                <Profiles />
+                              </ProtectedRoute>
+                            } />
                             <Route
                               path="/users-roles"
                               element={
-                                <ProtectedRoute>
+                                <ProtectedRoute requiredRole="Admin,Manager">
                                   <UsersRoles />
                                 </ProtectedRoute>
                               }
                             />
                             <Route
                               path="/notifications"
-                              element={<NotificationsPage />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <NotificationsPage />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/video-analysis"
-                              element={<VideoAnalysis />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager">
+                                  <VideoAnalysis />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route
                               path="/chat"
-                              element={<ChatPage />}
+                              element={
+                                <ProtectedRoute requiredRole="Admin,Coach,Manager,Trainee">
+                                  <ChatPage />
+                                </ProtectedRoute>
+                              }
                             />
                             <Route path="*" element={<NotFound />} />
                           </Routes>

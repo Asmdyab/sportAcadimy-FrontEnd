@@ -219,6 +219,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: payload.password,
       phoneNumber: payload.phoneNumber ?? "",
       emailConfirmed: payload.emailConfirmed ?? true,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      ssn: payload.ssn,
+      birthDate: payload.birthDate,
+      gender: payload.gender,
+      nationality: payload.nationality,
+      city: payload.city,
+      street: payload.street,
+      branchId: payload.branchId,
+      nationalityCategoryId: payload.nationalityCategoryId,
     };
 
     const result = await signUp(payloadToSend);

@@ -42,28 +42,26 @@ import {
 import { cn } from "@/lib/utils";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Video Analysis", url: "/video-analysis", icon: Video },
-  { title: "AI Chat", url: "/chat", icon: MessageCircle },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: "Admin,Coach,Manager,Trainee" },
+  { title: "Video Analysis", url: "/video-analysis", icon: Video, roles: "Admin,Coach,Manager" },
+  { title: "AI Chat", url: "/chat", icon: MessageCircle, roles: "Admin,Coach,Manager,Trainee" },
 ];
 
 const managementItems = [
-  { title: "Employees", url: "/employees", icon: Users },
-  { title: "Coaches", url: "/coaches", icon: UserCheck },
-  { title: "Trainees", url: "/trainees", icon: GraduationCap },
-  { title: "Branches", url: "/branches", icon: MapPin },
-  { title: "Sports", url: "/sports", icon: Trophy },
+  { title: "Employees", url: "/employees", icon: Users, roles: "Admin,Manager" },
+  { title: "Coaches", url: "/coaches", icon: UserCheck, roles: "Admin,Coach,Manager" },
+  { title: "Trainees", url: "/trainees", icon: GraduationCap, roles: "Admin,Coach,Manager,Trainee" },
+  { title: "Branches", url: "/branches", icon: MapPin, roles: "Admin,Coach,Manager,Trainee" },
+  { title: "Sports", url: "/sports", icon: Trophy, roles: "Admin,Coach,Manager,Trainee" },
 ];
 
 const operationsItems = [
-  { title: "Trainee Groups", url: "/trainee-groups", icon: Users },
-  { title: "Sessions", url: "/sessions", icon: Layers },
-
-
-  { title: "Enrollments", url: "/enrollments", icon: UserPlus },
-  { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
-  { title: "Attendance Report", url: "/attendance/report", icon: ClipboardList },
-  { title: "Profiles", url: "/profiles", icon: User },
+  { title: "Trainee Groups", url: "/trainee-groups", icon: Users, roles: "Admin,Coach,Manager" },
+  { title: "Sessions", url: "/sessions", icon: Layers, roles: "Admin,Coach,Manager" },
+  { title: "Enrollments", url: "/enrollments", icon: UserPlus, roles: "Admin,Coach,Manager,Trainee" },
+  { title: "Attendance", url: "/attendance", icon: ClipboardCheck, roles: "Admin,Coach,Manager" },
+  { title: "Attendance Report", url: "/attendance/report", icon: ClipboardList, roles: "Admin,Coach,Manager" },
+  { title: "Profiles", url: "/profiles", icon: User, roles: "Admin,Manager" },
 ];
 
 export function AppSidebar() {
@@ -75,7 +73,9 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
-  const isAdmin = hasRole("Admin");
+  const canShow = (roles: string) => {
+    return roles.split(",").some((r) => hasRole(r.trim()));
+  };
 
   const handleLogout = () => {
     logout();
@@ -115,7 +115,9 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems
+                .filter((item) => canShow(item.roles))
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -183,7 +185,9 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {managementItems.map((item) => (
+                  {managementItems
+                    .filter((item) => canShow(item.roles))
+                    .map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -223,7 +227,9 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {operationsItems.map((item) => (
+                  {operationsItems
+                    .filter((item) => canShow(item.roles))
+                    .map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -239,7 +245,7 @@ export function AppSidebar() {
                   ))}
 
                   {/* Users & Roles — Admin only */}
-                  {isAdmin && (
+                  {canShow("Admin,Manager") && (
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         asChild

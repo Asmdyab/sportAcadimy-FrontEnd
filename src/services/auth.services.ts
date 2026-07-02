@@ -43,6 +43,16 @@ export interface RegisterPayload {
   password: string;
   phoneNumber: string;
   emailConfirmed?: boolean;
+  firstName: string;
+  lastName: string;
+  ssn: string;
+  birthDate: string;
+  gender: string;
+  nationality: string;
+  city: string;
+  street: string;
+  branchId: number;
+  nationalityCategoryId: number;
 }
 
 export interface LoginPayload {
@@ -90,7 +100,7 @@ export const getUsers = async (): Promise<ApiResult<AppUser[]>> => {
 };
 
 export const getRoles = async (): Promise<ApiResult<string[]>> => {
-  if (isDevSession()) return devMock<string[]>(["Admin", "Manager", "Coach"]);
+  if (isDevSession()) return devMock<string[]>(["Admin", "Manager", "Trainee", "Coach"]);
   return apiFetch<ApiResult<string[]>>("/api/auth/roles");
 };
 
